@@ -50,22 +50,18 @@ public class OrderService {
         return orderRepository.findById(id).orElse(null);
     }
 
-    public Page<Order> getAllOrders(int page, int size){
-        log.info("Fetching orders with pagination - page: {}, size: {}", page, size);
-        Pageable pageable = PageRequest.of(page, size);
-        return orderRepository.findAll(pageable);
+    public List<Order> getAllOrders(){
+        log.info("Fetching all orders");
+        return orderRepository.findAll();
     }
 
     @Transactional
-    public Order updateOrderId(Long id, Order order){
+    public void updateOrderId(Long id, Order order) {
         log.info("Updating order with id: {}", id);
-        return orderRepository.findById(id).map(existingRecipe->{
-            order.setId(id);
-            return orderRepository.save(order);
-        }).orElseThrow(()->{
-            log.error("Order with id {} does not exist!", id);
-            return new EntityNotFoundException("Order with id "+ id+ " does not exist!");
-        });
+        orderRepository.findById(id).orElseThrow(() ->
+                new EntityNotFoundException("Order with id " + id + " does not exist!"));
+        order.setId(id);
+        orderRepository.save(order);
     }
 
     @Transactional
@@ -78,10 +74,7 @@ public class OrderService {
     public void makeOrder(String recipeName) {
         log.info("Making order for recipe: {}", recipeName);
         Recipe recipe = recipeRepository.findByName(recipeName)
-                .orElseThrow(() -> {
-                    log.info("Recipe with name {} does not exist!", recipeName);
-                    return new EntityNotFoundException("Рецепт с именем " + recipeName + " не существует");
-                });
+                .orElseThrow(() -> new EntityNotFoundException("Рецепт с именем " + recipeName + " не существует"));
         Order order = new Order();
         order.setRecipe(recipe);
         order.setDatetimeOrdered(new Timestamp(System.currentTimeMillis()));
@@ -105,22 +98,22 @@ public class OrderService {
 
     public Order getLastOrder(){
         log.info("Fetching last order");
-        return orderRepository.findLastOrder().orElseThrow(()->{
-            log.error("No orders found");
-            return new EntityNotFoundException("There are no orders!");
-        });
+        return orderRepository.findLastOrder().orElseThrow(()->
+             new EntityNotFoundException("There are no orders!")
+        );
     }
 
     @Transactional
     public void deleteOrdersOlderThanFiveYears(){
+        log.info("Deleting orders with age >= 5 years");
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.YEAR, -5);
         Timestamp cutoffDate = new Timestamp(calendar.getTimeInMillis());
-        orderRepository.deleteOrdersOlderThan(cutoffDate);
+        orderRepository. deleteByDatetimeOrderedBefore(cutoffDate);
     }
 
 
-    @Scheduled(cron = "0 0 0 * * ?") // Каждый день в полночь
+    @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void deleteOldOrdersScheduled() {
         deleteOrdersOlderThanFiveYears();

@@ -26,6 +26,7 @@ public class RecipeStepService {
 
 
     public List<String> getActionTypeDescriptions() {
+        log.info("Fetching all action types");
         return Arrays.stream(ActionType.values())
                 .map(ActionType::getDescription)
                 .collect(Collectors.toList());

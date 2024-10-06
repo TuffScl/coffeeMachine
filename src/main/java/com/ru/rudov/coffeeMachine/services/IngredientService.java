@@ -30,7 +30,8 @@ public class IngredientService {
 
     public Ingredient getIngredientById(Long id){
         log.info("Fetching ingredient by id: {}", id);
-        return ingredientRepository.findById(id).orElse(null);
+        return ingredientRepository.findById(id).orElseThrow(()->
+                new EntityNotFoundException("Ingredient with id "+ id+ " does not exist!"));
     }
 
     public List<Ingredient> getAllIngredients(){
@@ -38,17 +39,12 @@ public class IngredientService {
         return ingredientRepository.findAll();
     }
 
-    @Transactional
-    public Ingredient updateIngredientById(Long id, Ingredient ingredient){
+    public void updateIngredientById(Long id, Ingredient ingredient) {
         log.info("Updating ingredient with id: {}", id);
-        return ingredientRepository.findById(id).map(existingRecipe->{
-            ingredient.setId(id);
-            return ingredientRepository.save(ingredient);
-        }).orElseThrow(()->
-        {
-            log.error("Ingredient with id {} does not exist!", id);
-            return new EntityNotFoundException("Ingredient with id "+ id+ " does not exist!");
-        });
+        ingredientRepository.findById(id).orElseThrow(() ->
+                new EntityNotFoundException("Ingredient with id " + id + " does not exist!"));
+        ingredient.setId(id);
+        ingredientRepository.save(ingredient);
     }
 
     @Transactional
@@ -59,6 +55,7 @@ public class IngredientService {
 
     @Transactional
     public void increaseIngredientStockById(Long id, Long quantity){
+        log.info("Increasing ingredient's stock with id: {}, by: {}", id, quantity);
         Ingredient ingredient = ingredientRepository.findById(id).orElseThrow(()->
                 new EntityNotFoundException("Ingredient with id "+ id+ " does not exist!"));
         ingredient.setStock(ingredient.getStock()+quantity);
@@ -67,6 +64,7 @@ public class IngredientService {
 
     @Transactional
     public void decreaseIngredientStockById(Long id, Long quantity){
+        log.info("Decreasing ingredient's stock with id: {}, by: {}", id, quantity);
         Ingredient ingredient = ingredientRepository.findById(id).orElseThrow(()->
                 new EntityNotFoundException("Ingredient with id "+ id+ " does not exist!"));
         if (ingredient.getStock()>=quantity)

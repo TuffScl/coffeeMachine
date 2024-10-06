@@ -29,9 +29,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     Page<Order> findAll(Pageable pageable);
 
-    @Transactional
-    @Modifying
-    @Query("DELETE FROM Order o WHERE o.datetimeOrdered < :cutoffDate")
-    void deleteOrdersOlderThan(Timestamp cutoffDate);
+    void deleteByDatetimeOrderedBefore(Timestamp cutoffDate);
+
 
 }

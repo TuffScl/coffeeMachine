@@ -6,17 +6,14 @@ import java.util.List;
 
 @Getter
 public enum ActionType {
-    ADD_INGREDIENT("Добавить ингредиент"),
-    HEAT_WATER("Нагреть воду"),
-    FROTH_MILK("Взбить молоко"),
-    MIX("Перемешать"),
-    WAIT("Ожидание"),
-    POUR_INTO_CUP("Налить в чашку");
-
-
+    ADD_INGREDIENT("ADD_INGREDIENT"),
+    HEAT_WATER("HEAT_WATER"),
+    FROTH_MILK("FROTH_MILK"),
+    MIX("MIX"),
+    WAIT("WAIT"),
+    POUR_INTO_CUP("POUR_INTO_CUP");
 
     private final String description;
-
 
     ActionType(String description){
         this.description = description;

@@ -42,13 +42,13 @@ public class IngredientController {
 
     @Operation(summary = "Increase ingredient stock by ID")
     @PatchMapping("/increase/{id}")
-    public void increaseIngredientStock(@PathVariable Long id, Long quantity){
+    public void increaseIngredientStock(@PathVariable Long id, @RequestParam Long quantity){
         ingredientService.increaseIngredientStockById(id, quantity);
     }
 
     @Operation(summary = "Decrease ingredient stock by ID")
     @PatchMapping("/decrease/{id}")
-    public void decreaseIngredientStock(@PathVariable Long id, Long quantity){
+    public void decreaseIngredientStock(@PathVariable Long id, @RequestParam Long quantity){
         ingredientService.decreaseIngredientStockById(id, quantity);
     }
 
@@ -59,7 +59,7 @@ public class IngredientController {
     }
 
     @Operation(summary = "Update an ingredient by ID")
-    @PostMapping("/{id}")
+    @PutMapping("/{id}")
     public void updateIngredientById(@PathVariable Long id, @RequestBody Ingredient ingredient){
         ingredientService.updateIngredientById(id, ingredient);
     }

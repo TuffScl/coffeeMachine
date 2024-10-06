@@ -1,6 +1,7 @@
 package com.ru.rudov.coffeeMachine.services;
 
 import com.ru.rudov.coffeeMachine.models.Recipe;
+import com.ru.rudov.coffeeMachine.models.RecipeStep;
 import com.ru.rudov.coffeeMachine.repositories.RecipeRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -39,14 +40,15 @@ public class RecipeService {
     }
 
     @Transactional
-    public Recipe updateRecipeId(Long id, Recipe recipe){
+    public void updateRecipeById(Long id, Recipe recipe) {
         log.info("Updating recipe with id: {}", id);
-        return recipeRepository.findById(id).map(existingRecipe->{
-            recipe.setId(id);
-            return recipeRepository.save(recipe);
-        }).orElseThrow(()->{
-            log.error("Recipe with id {} does not exist!", id);
-            return new EntityNotFoundException("Recipe with id "+ id+ " does not exist!");});
+        recipeRepository.findById(id).orElseThrow(() ->
+                new EntityNotFoundException("Recipe with id: " + id + " does not exist"));
+        recipe.setId(id);
+        for (RecipeStep step : recipe.getSteps()) {
+            step.setRecipe(recipe);
+        }
+        recipeRepository.save(recipe);
     }
 
     @Transactional
@@ -57,10 +59,8 @@ public class RecipeService {
 
     public Recipe getMostPopular(){
         log.info("Fetching the most popular recipe");
-        return recipeRepository.findMostPopularRecipe().stream().findFirst().orElseThrow(() -> {
-            log.error("No recipes found");
-            return new EntityNotFoundException("There are no recipes!");
-        });
+        return recipeRepository.findMostPopularRecipe().stream().findFirst().orElseThrow(() ->
+                new EntityNotFoundException("There are no recipes!"));
     }
 
 

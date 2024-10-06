@@ -1,6 +1,6 @@
 package com.ru.rudov.coffeeMachine.models;
 
-import com.ru.rudov.coffeeMachine.utils.OrderStatus;
+import com.ru.rudov.coffeeMachine.utils.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -11,6 +11,5 @@ import lombok.Setter;
 @NoArgsConstructor
 public class PopularRecipeDTO {
     private String name;
-
     private Long orderCount;
 }

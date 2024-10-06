@@ -10,13 +10,13 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/recipe")
-
 public class RecipeController {
 
     private final RecipeService recipeService;
-
 
     @Autowired
     public RecipeController(RecipeService recipeService) {
@@ -31,8 +31,8 @@ public class RecipeController {
 
     @Operation(summary = "Get all recipes")
     @GetMapping("/all")
-    public void getAllRecipes() {
-        recipeService.getAllRecipes();
+    public List<Recipe> getAllRecipes() {
+        return recipeService.getAllRecipes();
     }
 
     @Operation(summary = "Update a recipe by ID")
@@ -47,6 +47,4 @@ public class RecipeController {
     public void deleteRecipeById(@Parameter(description = "ID of the recipe to delete", required = true) @PathVariable Long id) {
         recipeService.deleteRecipeById(id);
     }
-
-
 }

@@ -2,18 +2,22 @@ package com.ru.rudov.coffeeMachine.services;
 
 import com.ru.rudov.coffeeMachine.models.Order;
 import com.ru.rudov.coffeeMachine.models.Recipe;
-import com.ru.rudov.coffeeMachine.repositories.IngredientRepository;
 import com.ru.rudov.coffeeMachine.repositories.OrderRepository;
 import com.ru.rudov.coffeeMachine.repositories.RecipeRepository;
 import com.ru.rudov.coffeeMachine.utils.OrderQueue;
-import com.ru.rudov.coffeeMachine.utils.OrderStatus;
+import com.ru.rudov.coffeeMachine.utils.enums.OrderStatus;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.List;
 
 @Service
@@ -22,32 +26,22 @@ import java.util.List;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final RecipeRepository recipeRepository;
-
-   // private final IngredientRepository ingredientRepository;
-
-    //
     private final OrderQueue orderQueue;
-    //
+
     @Autowired
     public OrderService(OrderRepository orderRepository, RecipeRepository recipeRepository, OrderQueue orderQueue) {
         this.orderRepository = orderRepository;
         this.recipeRepository = recipeRepository;
-      //  this.ingredientRepository = ingredientRepository;
-
-        //
         this.orderQueue = orderQueue;
-        // Инициализация очереди с существующими заказами
-        List<Order> pendingOrders = orderRepository.findByStatus(OrderStatus.AWAITING);
-        orderQueue.initializeProcessing(pendingOrders);
 
-        // Установить callback для завершения заказа
+        List<Order> awaitingOrders = orderRepository.findByStatus(OrderStatus.AWAITING);
+        orderQueue.initializeProcessing(awaitingOrders);
         orderQueue.setOrderCompletionCallback(this::completeOrder);
-        //
     }
 
     @Transactional
     public void createOrder(Order order){
-        log.info("Creating new order: {}", order);
+        log.info("Creating new order with id: {}", order.getId());
         orderRepository.save(order);
     }
 
@@ -56,9 +50,10 @@ public class OrderService {
         return orderRepository.findById(id).orElse(null);
     }
 
-    public List<Order> getAllOrders(){
-        log.info("Fetching all orders");
-        return orderRepository.findAll();
+    public Page<Order> getAllOrders(int page, int size){
+        log.info("Fetching orders with pagination - page: {}, size: {}", page, size);
+        Pageable pageable = PageRequest.of(page, size);
+        return orderRepository.findAll(pageable);
     }
 
     @Transactional
@@ -79,55 +74,12 @@ public class OrderService {
         orderRepository.deleteById(id);
     }
 
-
-//    @Transactional
-//    public void makeOrder(String recipeName) {
-//        Recipe recipe = recipeRepository.findByName(recipeName)
-//                .orElseThrow(() -> new EntityNotFoundException("Рецепт с именем " + recipeName + " не существует"));
-//
-//        boolean isEnough = true;
-//
-//        for (RecipeStep step : recipe.getSteps()) {
-//            if (step.getQuantity()!=null) {
-//                Ingredient ingredient = ingredientRepository.findById(step.getIngredient().getId())
-//                        .orElseThrow(() -> new EntityNotFoundException(
-//                                "Ингредиент с id " + step.getIngredient().getId() + " не найден"));
-//
-//                if (ingredient.getStock() < step.getQuantity()) {
-//                    isEnough = false;
-//                    break;
-//                }
-//            }
-//        }
-//
-//        if (isEnough) {
-//            for (RecipeStep step : recipe.getSteps()) {
-//            if (step.getQuantity()!=null) {
-//                    Ingredient ingredient = ingredientRepository.findById(step.getIngredient().getId())
-//                            .orElseThrow(() -> new EntityNotFoundException(
-//                                    "Ингредиент с id " + step.getIngredient().getId() + " не найден"));
-//                    ingredient.setStock(ingredient.getStock() - step.getQuantity());
-//                    ingredientRepository.save(ingredient);
-//                }
-//            }
-//
-//            Order order = new Order();
-//            order.setRecipe(recipe);
-//            order.setDatetimeOrdered(new Timestamp(System.currentTimeMillis()));
-//            orderRepository.save(order);
-//        } else {
-//            throw new InsufficientStockException("Не хватает одного или более ингредиентов");
-//        }
-//    }
-
-
-    //
     @Transactional
     public void makeOrder(String recipeName) {
         log.info("Making order for recipe: {}", recipeName);
         Recipe recipe = recipeRepository.findByName(recipeName)
                 .orElseThrow(() -> {
-                    log.error("Recipe with name {} does not exist!", recipeName);
+                    log.info("Recipe with name {} does not exist!", recipeName);
                     return new EntityNotFoundException("Рецепт с именем " + recipeName + " не существует");
                 });
         Order order = new Order();
@@ -144,9 +96,6 @@ public class OrderService {
         order.setStatus(OrderStatus.FINISHED);
         orderRepository.save(order);
     }
-    //
-
-
 
     public Long countOrdersByRecipeId(Long recipeId){
 
@@ -162,9 +111,19 @@ public class OrderService {
         });
     }
 
-    private boolean isMachineBusy() {
-        log.info("Checking if the machine is busy");
-        return orderRepository.existsByStatus(OrderStatus.IN_PROGRESS);
+    @Transactional
+    public void deleteOrdersOlderThanFiveYears(){
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.YEAR, -5);
+        Timestamp cutoffDate = new Timestamp(calendar.getTimeInMillis());
+        orderRepository.deleteOrdersOlderThan(cutoffDate);
+    }
+
+
+    @Scheduled(cron = "0 0 0 * * ?") // Каждый день в полночь
+    @Transactional
+    public void deleteOldOrdersScheduled() {
+        deleteOrdersOlderThanFiveYears();
     }
 
 }

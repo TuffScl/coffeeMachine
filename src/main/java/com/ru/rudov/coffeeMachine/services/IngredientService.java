@@ -24,7 +24,7 @@ public class IngredientService {
 
     @Transactional
     public void createIngredient(Ingredient ingredient){
-        log.info("Creating new ingredient: {}", ingredient);
+        log.info("Creating new ingredient with id: {}", ingredient.getId());
         ingredientRepository.save(ingredient);
     }
 
@@ -39,7 +39,7 @@ public class IngredientService {
     }
 
     @Transactional
-    public Ingredient updateIngredientId(Long id, Ingredient ingredient){
+    public Ingredient updateIngredientById(Long id, Ingredient ingredient){
         log.info("Updating ingredient with id: {}", id);
         return ingredientRepository.findById(id).map(existingRecipe->{
             ingredient.setId(id);
@@ -56,4 +56,24 @@ public class IngredientService {
         log.info("Deleting ingredient with id: {}", id);
         ingredientRepository.deleteById(id);
     }
+
+    @Transactional
+    public void increaseIngredientStockById(Long id, Long quantity){
+        Ingredient ingredient = ingredientRepository.findById(id).orElseThrow(()->
+                new EntityNotFoundException("Ingredient with id "+ id+ " does not exist!"));
+        ingredient.setStock(ingredient.getStock()+quantity);
+        ingredientRepository.save(ingredient);
+    }
+
+    @Transactional
+    public void decreaseIngredientStockById(Long id, Long quantity){
+        Ingredient ingredient = ingredientRepository.findById(id).orElseThrow(()->
+                new EntityNotFoundException("Ingredient with id "+ id+ " does not exist!"));
+        if (ingredient.getStock()>=quantity)
+            ingredient.setStock(ingredient.getStock()-quantity);
+        else ingredient.setStock(0L);
+        ingredientRepository.save(ingredient);
+    }
+
+
 }

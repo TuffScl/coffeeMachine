@@ -1,12 +1,14 @@
 package com.ru.rudov.coffeeMachine.repositories;
 
-import com.ru.rudov.coffeeMachine.dtos.PopularRecipeDTO;
 import com.ru.rudov.coffeeMachine.models.Order;
-import com.ru.rudov.coffeeMachine.models.Recipe;
-import com.ru.rudov.coffeeMachine.utils.OrderStatus;
+import com.ru.rudov.coffeeMachine.utils.enums.OrderStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -25,5 +27,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findByStatus(OrderStatus orderStatus);
 
+    Page<Order> findAll(Pageable pageable);
+
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM Order o WHERE o.datetimeOrdered < :cutoffDate")
+    void deleteOrdersOlderThan(Timestamp cutoffDate);
 
 }

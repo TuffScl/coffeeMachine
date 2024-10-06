@@ -1,5 +1,6 @@
 package com.ru.rudov.coffeeMachine.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,6 +28,7 @@ public class Ingredient {
     private Long stock;
 
     @OneToMany(mappedBy = "ingredient")
+    @JsonIgnore
     private List<RecipeStep> steps;
 
 }

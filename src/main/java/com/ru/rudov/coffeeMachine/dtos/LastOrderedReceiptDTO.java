@@ -15,5 +15,4 @@ import java.sql.Timestamp;
 public class LastOrderedReceiptDTO {
     private String name;
     private Timestamp lastOrdered;
-
 }

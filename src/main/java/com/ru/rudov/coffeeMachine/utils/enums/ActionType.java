@@ -1,6 +1,8 @@
-package com.ru.rudov.coffeeMachine.utils;
+package com.ru.rudov.coffeeMachine.utils.enums;
 
 import lombok.Getter;
+
+import java.util.List;
 
 @Getter
 public enum ActionType {
@@ -11,7 +13,10 @@ public enum ActionType {
     WAIT("Ожидание"),
     POUR_INTO_CUP("Налить в чашку");
 
+
+
     private final String description;
+
 
     ActionType(String description){
         this.description = description;

@@ -23,7 +23,7 @@ public class RecipeService {
 
     @Transactional
     public void createRecipe(Recipe recipe){
-        log.info("Creating new recipe: {}", recipe);
+        log.info("Creating new recipe with id: {}", recipe.getId());
         recipe.getSteps().forEach(step -> step.setRecipe(recipe));
         recipeRepository.save(recipe);
     }

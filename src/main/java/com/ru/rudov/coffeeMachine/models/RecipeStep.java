@@ -1,6 +1,6 @@
 package com.ru.rudov.coffeeMachine.models;
 
-import com.ru.rudov.coffeeMachine.utils.ActionType;
+import com.ru.rudov.coffeeMachine.utils.enums.ActionType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

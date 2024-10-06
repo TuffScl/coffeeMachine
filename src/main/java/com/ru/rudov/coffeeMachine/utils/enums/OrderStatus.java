@@ -1,4 +1,4 @@
-package com.ru.rudov.coffeeMachine.utils;
+package com.ru.rudov.coffeeMachine.utils.enums;
 
 
 public enum OrderStatus {

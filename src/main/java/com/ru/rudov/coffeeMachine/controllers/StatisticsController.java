@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/statistics")
-
 public class StatisticsController {
 
     private final OrderService orderService;

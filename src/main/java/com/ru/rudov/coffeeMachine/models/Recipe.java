@@ -1,6 +1,9 @@
 package com.ru.rudov.coffeeMachine.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,9 +25,12 @@ public class Recipe {
     @Column(name="id")
     private Long id;
 
+    @NotBlank(message = "Название рецепта не должно быть пустым")
     @Column(name="name")
     private String name;
 
+    @Valid
+    @NotEmpty(message = "Список шагов не может быть пустым")
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.JOIN) // Инициализация при загрузке рецепта
     private List<RecipeStep> steps;

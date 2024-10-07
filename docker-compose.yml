@@ -10,10 +10,10 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/postgres
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: scorpion411
+      SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_FLYWAY_URL: jdbc:postgresql://db:5432/postgres
       SPRING_FLYWAY_USER: postgres
-      SPRING_FLYWAY_PASSWORD: scorpion411
+      SPRING_FLYWAY_PASSWORD: postgres
     depends_on:
       - db
 
@@ -24,7 +24,7 @@ services:
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: scorpion411
+      POSTGRES_PASSWORD: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

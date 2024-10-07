@@ -60,7 +60,7 @@ public class IngredientController {
 
     @Operation(summary = "Update an ingredient by ID")
     @PutMapping("/{id}")
-    public void updateIngredientById(@PathVariable Long id, @RequestBody Ingredient ingredient){
+    public void updateIngredientById(@PathVariable Long id, @Valid @RequestBody Ingredient ingredient){
         ingredientService.updateIngredientById(id, ingredient);
     }
 }

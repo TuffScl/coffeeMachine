@@ -43,7 +43,7 @@ public class RecipeController {
 
     @Operation(summary = "Update a recipe by ID")
     @PutMapping("/{id}")
-    public void changeRecipeById(@Parameter(description = "ID of the recipe to update", required = true) @PathVariable Long id,
+    public void updateRecipeById(@Parameter(description = "ID of the recipe to update", required = true) @PathVariable Long id,
                                  @Valid @RequestBody Recipe recipe) {
         recipeService.updateRecipeById(id, recipe);
     }

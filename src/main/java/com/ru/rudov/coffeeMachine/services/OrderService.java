@@ -1,17 +1,17 @@
 package com.ru.rudov.coffeeMachine.services;
 
+import com.ru.rudov.coffeeMachine.models.Ingredient;
 import com.ru.rudov.coffeeMachine.models.Order;
 import com.ru.rudov.coffeeMachine.models.Recipe;
+import com.ru.rudov.coffeeMachine.models.RecipeStep;
 import com.ru.rudov.coffeeMachine.repositories.OrderRepository;
 import com.ru.rudov.coffeeMachine.repositories.RecipeRepository;
 import com.ru.rudov.coffeeMachine.utils.OrderQueue;
 import com.ru.rudov.coffeeMachine.utils.enums.OrderStatus;
+import com.ru.rudov.coffeeMachine.utils.errors.InsufficientIngredientException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,11 +28,14 @@ public class OrderService {
     private final RecipeRepository recipeRepository;
     private final OrderQueue orderQueue;
 
+    private final IngredientService ingredientService;
+
     @Autowired
-    public OrderService(OrderRepository orderRepository, RecipeRepository recipeRepository, OrderQueue orderQueue) {
+    public OrderService(OrderRepository orderRepository, RecipeRepository recipeRepository, OrderQueue orderQueue, IngredientService ingredientService) {
         this.orderRepository = orderRepository;
         this.recipeRepository = recipeRepository;
         this.orderQueue = orderQueue;
+        this.ingredientService = ingredientService;
 
         List<Order> awaitingOrders = orderRepository.findByStatus(OrderStatus.AWAITING);
         orderQueue.initializeProcessing(awaitingOrders);
@@ -73,25 +76,45 @@ public class OrderService {
     @Transactional
     public void makeOrder(String recipeName) {
         log.info("Making order for recipe: {}", recipeName);
+
         Recipe recipe = recipeRepository.findByName(recipeName)
-                .orElseThrow(() -> new EntityNotFoundException("Рецепт с именем " + recipeName + " не существует"));
+                .orElseThrow(() -> new EntityNotFoundException("Recipe with name " + recipeName + " does not exist"));
+
+        for (RecipeStep step : recipe.getSteps()) {
+            Ingredient ingredient = step.getIngredient();
+            if (ingredient != null) {
+                Long requiredQuantity = step.getQuantity();
+                if (ingredient.getStock() < requiredQuantity) {
+                    throw new InsufficientIngredientException("Not enough ingredient " + ingredient.getName() + " in stock for this operation.");
+                }
+            }
+        }
+
+        for (RecipeStep step : recipe.getSteps()) {
+            Ingredient ingredient = step.getIngredient();
+            if (ingredient!=null){
+                Long requiredQuantity = step.getQuantity();
+                ingredientService.decreaseIngredientStockById(ingredient.getId(), requiredQuantity);
+            }
+        }
+
         Order order = new Order();
         order.setRecipe(recipe);
         order.setDatetimeOrdered(new Timestamp(System.currentTimeMillis()));
         order.setStatus(OrderStatus.AWAITING);
 
-        log.info("Adding order to queue: {}", order);
+        log.info("Adding order to queue: {}", order.getId());
         orderQueue.addOrder(order);
+
     }
 
     public void completeOrder(Order order) {
-        log.info("Completing order: {}", order);
+        log.info("Completing order: {}", order.getId());
         order.setStatus(OrderStatus.FINISHED);
         orderRepository.save(order);
     }
 
     public Long countOrdersByRecipeId(Long recipeId){
-
         log.info("Counting orders by recipe id: {}", recipeId);
         return orderRepository.countOrdersByRecipeId(recipeId);
     }

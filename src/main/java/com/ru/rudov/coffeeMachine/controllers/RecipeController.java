@@ -28,7 +28,7 @@ public class RecipeController {
 
     @Operation(summary = "Add a new recipe")
     @PostMapping("/add")
-    public void addNewRecipe(@Valid @RequestBody Recipe recipe) {
+    public void addNewRecipe(@Parameter(description = "Recipe", required = true) @Valid @RequestBody Recipe recipe) {
         recipeService.createRecipe(recipe);
     }
 
